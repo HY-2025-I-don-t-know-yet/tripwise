@@ -8,7 +8,7 @@ import Image from 'next/image';
 import Level1Icon from "../../../public/level1.svg"
 import Level2Icon from "../../../public/level2.svg"
 import Level3Icon from "../../../public/level3.svg"
-import Level4Icon from "../../../public/level4.svg"
+import Level4Icon from "../../../public/level4-bw.svg"
 
 const DANGER_LEVELS = {
     MINOR: {
