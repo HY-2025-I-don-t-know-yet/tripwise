@@ -1,88 +1,52 @@
 import { Coords } from "@/types/coords";
-import polyline from "@mapbox/polyline";
+import polyline from "@mapbox/polyline"
 
-const VALHALLA_API_URL = "/api/routing";
+const OSRM_API_URL = "https://router.project-osrm.org/route/v1/driving"
 
 export interface RouteGeoJSON {
-    type: "Feature";
+    type: "Feature"
     geometry: {
-        type: "LineString";
-        coordinates: [number, number][]; // [lng, lat]
-    };
+        type: "LineString"
+        coordinates: [number, number][] // [lng, lat]
+    }
 }
 
-export async function planOptimalRoute(
-    coords: Coords[],
-    dangerousGeometries?: { type: string; coordinates: [number, number][][][]; }[]
-): Promise<RouteGeoJSON | null> {
-    const locations = coords.map(coord => ({
-        lon: coord.lon,
-        lat: coord.lat,
-    }));
-
-    const requestBody: any = {
-        locations,
-        costing: "auto",
-        alternates: 1,
-        costing_options: {
-            auto: {}
-        }
-    };
-
-    if (dangerousGeometries) {
-        const polygons = dangerousGeometries
-            .flatMap(g => g.coordinates) // Flatten the coordinates array
-            .map(ring => {
-                const cleanedRing = ring.map(c => [
-                    parseFloat(Number(c[0]).toFixed(6)),
-                    parseFloat(Number(c[1]).toFixed(6))
-                ]);
-
-                // Ensure the polygon is closed
-                const firstPoint = cleanedRing[0];
-                const lastPoint = cleanedRing[cleanedRing.length - 1];
-                if (firstPoint[0] !== lastPoint[0] || firstPoint[1] !== lastPoint[1]) {
-                    cleanedRing.push(firstPoint);
-                }
-                return cleanedRing;
-            });
-
-        if (polygons.length > 0) {
-            requestBody.exclude_polygons = polygons;
-        }
-    }
+export async function planOptimalRoute(coords: Coords[], dangerousPolygons?: any[]): Promise<RouteGeoJSON | null> {
+    var parts: string[] = []
+    coords.forEach(coord => {
+        parts.push(`${coord.lon},${coord.lat}`)
+    })
+    const coordinates = parts.join(";")
 
     try {
-        const response = await fetch(VALHALLA_API_URL, {
-            method: "POST",
-            body: JSON.stringify(requestBody),
-        });
+        const url = `${OSRM_API_URL}/${coordinates}?overview=full&geometries=polyline`
+        const response = await fetch(url)
 
         if (!response.ok) {
-            throw new Error(`Error fetching route: ${response.statusText}`);
+            throw new Error(`Error fetching route: ${response.statusText}`)
         }
 
-        const data = await response.json();
+        const data = await response.json()
 
-        if (!data.trip?.legs?.length) {
-            console.warn("No route found");
-            return null;
+        if (!data.routes?.length) {
+            console.warn("No route found")
+            return null
         }
 
-        const encodedPolyline = data.trip.legs[0].shape;
-        const decodedPolyline: [number, number][] = polyline.decode(encodedPolyline, 6).map((c: [number, number]) => [c[1], c[0]]);
+        const encodedPolyline = data.routes[0].geometry
+        const decodedPolyline: [number, number][] = polyline.decode(encodedPolyline)
 
         const geojson: RouteGeoJSON = {
             type: "Feature",
             geometry: {
                 type: "LineString",
-                coordinates: decodedPolyline,
+                coordinates: decodedPolyline.map(([lat, lng]: [number, number]) => [lng, lat]),
             },
-        };
+        }
 
-        return geojson;
+        return geojson
     } catch (err) {
-        console.error("Error fetching route:", err);
-        return null;
+        console.error("Error fetching route:", err)
+        return null
     }
 }
