@@ -38,7 +38,16 @@ export default function RootLayout({
 
 
   const handlePlanRoute = () => {
-    if (startCoords && endCoords) {
+    if (startCoords && endCoords && aggregatedData) {
+      const latBuffer = 50 / 111.32; // 50km in degrees latitude
+      const avgLatRad = ((startCoords.lat + endCoords.lat) / 2) * (Math.PI / 180);
+      const lonBuffer = 50 / (111.32 * Math.cos(avgLatRad)); // 50km in degrees longitude at avg latitude
+
+      const minLat = Math.min(startCoords.lat, endCoords.lat) - latBuffer;
+      const maxLat = Math.max(startCoords.lat, endCoords.lat) + latBuffer;
+      const minLon = Math.min(startCoords.lon, endCoords.lon) - lonBuffer;
+      const maxLon = Math.max(startCoords.lon, endCoords.lon) + lonBuffer;
+
       const dangerMapping = {
         0: 8, 1: 1, 2: 3, 3: 7, 4: 7, 5: 3, 6: 2, 7: 1, 8: 1, 9: 10, 10: 8,
         11: 4, 12: 9, 13: 1, 14: 2, 15: 7, 16: 8, 17: 4, 18: 5, 19: 2, 20: 9
@@ -52,11 +61,23 @@ export default function RootLayout({
         .map(([nameId]) => parseInt(nameId, 10));
 
       const filteredFeatures = aggregatedData.features
-        .filter((feature: any) =>
-          visibleNameIds.includes(feature.properties.name_id)
-        )
+        .filter((feature: any) => {
+          if (!visibleNameIds.includes(feature.properties.name_id)) {
+            return false;
+          }
 
-      planOptimalRoute([startCoords, endCoords], filteredFeatures).then((geojson) => {
+          const polygon = feature.geometry.coordinates[0];
+          // Check if any vertex of the polygon is inside the bounding box
+          const isInside = polygon.some((point: [number, number]) =>
+            point[1] >= minLat && point[1] <= maxLat &&
+            point[0] >= minLon && point[0] <= maxLon
+          );
+          return isInside;
+        });
+
+      const dangerousGeometries = filteredFeatures.map((f: any) => f.geometry);
+
+      planOptimalRoute([startCoords, endCoords], dangerousGeometries).then((geojson) => {
         if (geojson) {
           setRoutePath(geojson.geometry.coordinates);
         }
@@ -66,7 +87,7 @@ export default function RootLayout({
 
   return (
     // legal hack as it is only caused by theme change
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pl" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <Suspense fallback={null}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>

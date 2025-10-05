@@ -18,26 +18,26 @@ const DANGER_LEVELS = {
     MINOR: {
         threshold: 25,
         color: "bg-yellow-300",
-        label: "Minor",
-        text: "You will be notified of minor disturbances or higher (vandalism, graffiti)."
+        label: "Niski",
+        text: "Będziesz powiadamiany o drobnych zakłóceniach lub wyższych (wandalizm, graffiti)."
     },
     MODERATE: {
         threshold: 50,
         color: "bg-yellow-500",
-        label: "Moderate",
-        text: "You will be notified of moderate disturbances or higher (reckless driving, noise)."
+        label: "Średni",
+        text: "Będziesz powiadamiany o umiarkowanych zakłóceniach lub wyższych (nieostrożna jazda, hałas)."
     },
     SIGNIFICANT: {
         threshold: 75,
         color: "bg-red-300",
-        label: "Significant",
-        text: "You will be notified of significant disturbances or higher (protests, major disruptions)."
+        label: "Znaczący",
+        text: "Będziesz powiadamiany o znaczących zakłóceniach lub wyższych (protesty, poważne zakłócenia)."
     },
     CRITICAL: {
         threshold: 100,
         color: "bg-red-500",
-        label: "Critical",
-        text: "You will be notified of critical disturbances (life-threatening risks, riots, violent crime)."
+        label: "Krytyczny",
+        text: "Będziesz powiadamiany o krytycznych zakłóceniach (zagrożenie życia, zamieszki, brutalna przestępczość)."
     },
 } as const
 
@@ -65,7 +65,7 @@ export function SafetyCard() {
         <Card className="w-full bg-muted/20 rounded-lg">
             <CardHeader >
                 <CardTitle className="text-lg font-semibold text-foreground">
-                    Risk Management
+                    Zarządzanie Ryzykiem
                 </CardTitle>
             </CardHeader>
 
@@ -77,7 +77,7 @@ export function SafetyCard() {
                     max={100}
                     step={1}
                     className="w-full"
-                    aria-label="Danger level"
+                    aria-label="Poziom zagrożenia"
                 />
 
                 {/* Icons row */}

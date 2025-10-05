@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { FigmaInput } from "../figmed/input"
 import { Label } from "../ui/label"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
@@ -16,19 +16,29 @@ export function RouteCard() {
     const [suggestions, setSuggestions] = useState<StreetResult[]>([])
     const [activeField, setActiveField] = useState<"start" | "end" | null>(null)
 
-    const handleSearch = async () => {
+    const handleSearch = useCallback(async () => {
         if (!activeField) return;
         const query = activeField === "start" ? startStreet : endStreet;
         if (query) {
             const results = await completeStreetName(query);
             setSuggestions(results);
+        } else {
+            setSuggestions([]);
         }
-    };
+    }, [activeField, startStreet, endStreet]);
 
-    const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    useEffect(() => {
+        const identifier = setTimeout(() => {
+            handleSearch();
+        }, 500);
+        return () => {
+            clearTimeout(identifier);
+        };
+    }, [startStreet, endStreet, handleSearch]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             e.preventDefault(); // prevent form submit
-            await handleSearch();
         }
     };
 
@@ -52,26 +62,24 @@ export function RouteCard() {
 
     return (
         <form className="space-y-2.5 p-3 bg-muted/20 rounded-lg w-full">
-            <h2 className="text-lg font-semibold text-foreground">Route Planning</h2>
+            <h2 className="text-lg font-semibold text-foreground">Planowanie trasy</h2>
 
             <div className="flex flex-col gap-2 relative">
                 <FigmaInput
                     id="startStreet"
-                    placeholder="Enter starting point"
+                    placeholder="Punkt początkowy"
                     value={startStreet}
                     onChange={(e) => setStartStreet(e.target.value)}
                     onFocus={() => setActiveField("start")}
                     onKeyDown={handleKeyDown}
-                    onBlur={handleSearch}
                 />
                 <FigmaInput
                     id="endStreet"
-                    placeholder="Enter end"
+                    placeholder="Punkt końcowy"
                     value={endStreet}
                     onChange={(e) => setEndStreet(e.target.value)}
                     onFocus={() => setActiveField("end")}
                     onKeyDown={handleKeyDown}
-                    onBlur={handleSearch}
                 />
 
                 {suggestions.length > 0 && (
@@ -91,19 +99,19 @@ export function RouteCard() {
             </div>
 
             <div>
-                <Label className="text-sm text-muted-foreground">Transport Mode</Label>
+                <Label className="text-sm text-muted-foreground">Środek transportu</Label>
                 <RadioGroup defaultValue="car" className="flex flex-row justify-around mt-2">
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="car" id="car" />
-                        <Label htmlFor="car">Car</Label>
+                        <Label htmlFor="car">Samochód</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="train" id="train" />
-                        <Label htmlFor="train">Train</Label>
+                        <Label htmlFor="train">Pociąg</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="bicycle" id="bicycle" />
-                        <Label htmlFor="bicycle">Bicycle</Label>
+                        <Label htmlFor="bicycle">Rower</Label>
                     </div>
                 </RadioGroup>
             </div>

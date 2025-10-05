@@ -1,77 +1,69 @@
 import { Coords } from "@/types/coords";
-import polyline from "@mapbox/polyline"
+import polyline from "@mapbox/polyline";
 
-const OSRM_API_URL = "https://router.project-osrm.org/route/v1/driving"
+const VALHALLA_API_URL = "/api/routing";
 
 export interface RouteGeoJSON {
-    type: "Feature"
+    type: "Feature";
     geometry: {
-        type: "LineString"
-        coordinates: [number, number][] // [lng, lat]
-    }
+        type: "LineString";
+        coordinates: [number, number][]; // [lng, lat]
+    };
 }
 
-export async function planOptimalRoute(coords: Coords[], dangerousPolygons?: { geometry: { coordinates: [number, number][][] } }[]): Promise<RouteGeoJSON | null> {
-    var parts: string[] = []
-    coords.forEach(coord => {
-        parts.push(`${coord.lon},${coord.lat}`)
-    })
-    const coordinates = parts.join(";")
+export async function planOptimalRoute(
+    coords: Coords[],
+    dangerousGeometries?: { type: string; coordinates: [number, number][][]; }[]
+): Promise<RouteGeoJSON | null> {
+    const locations = coords.map(coord => ({
+        lon: coord.lon,
+        lat: coord.lat,
+    }));
+
+    const requestBody: any = {
+        locations,
+        costing: "auto",
+        alternates: 1,
+        costing_options: {
+            auto: {}
+        }
+    };
+
+    if (dangerousGeometries) {
+        requestBody.exclude_polygons = dangerousGeometries.map(g => g.coordinates[0]);
+    }
 
     try {
-        const url = `${OSRM_API_URL}/${coordinates}?overview=full&geometries=polyline`
-        const response = await fetch(url)
+        const response = await fetch(VALHALLA_API_URL, {
+            method: "POST",
+            body: JSON.stringify(requestBody),
+        });
 
         if (!response.ok) {
-            throw new Error(`Error fetching route: ${response.statusText}`)
+            throw new Error(`Error fetching route: ${response.statusText}`);
         }
 
-        const data = await response.json()
+        const data = await response.json();
 
-        if (!data.routes?.length) {
-            console.warn("No route found")
-            return null
+        if (!data.trip?.legs?.length) {
+            console.warn("No route found");
+            return null;
         }
 
-        const encodedPolyline = data.routes[0].geometry
-        const decodedPolyline: [number, number][] = polyline.decode(encodedPolyline)
-
-        const routeCoords: [number, number][] = decodedPolyline.map(([lat, lng]: [number, number]) => [lng, lat]);
-
-        if (dangerousPolygons) {
-            for (const point of routeCoords) {
-                for (const feature of dangerousPolygons) {
-                    const x = point[0], y = point[1];
-                    const polygon = feature.geometry.coordinates[0];
-                    let isInside = false;
-                    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-                        const xi = polygon[i][0], yi = polygon[i][1];
-                        const xj = polygon[j][0], yj = polygon[j][1];
-                        const intersect = ((yi > y) != (yj > y))
-                            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-                        if (intersect) isInside = !isInside;
-                    }
-                    if (isInside) {
-                        console.warn("Route intersects with a dangerous area", feature);
-                        // Here you could implement logic to handle the intersection,
-                        // for now, we just warn.
-                    }
-                }
-            }
-        }
-
+        const encodedPolyline = data.trip.legs[0].shape;
+        const decodedPolyline: [number, number][] = polyline.decode(encodedPolyline, 6).map((c: [number, number]) => [c[1], c[0]]);
 
         const geojson: RouteGeoJSON = {
             type: "Feature",
             geometry: {
                 type: "LineString",
-                coordinates: routeCoords,
+                coordinates: decodedPolyline,
             },
-        }
+        };
 
-        return geojson
+        return geojson;
     } catch (err) {
-        console.error("Error fetching route:", err)
-        return null
+        console.error("Error fetching route:", err);
+        return null;
     }
 }
