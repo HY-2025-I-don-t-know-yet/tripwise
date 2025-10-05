@@ -118,6 +118,19 @@ export function MapContainer() {
                 "line-width": 4,
             },
         });
+
+        const bounds = new maplibregl.LngLatBounds(
+            routePath[0] as [number, number],
+            routePath[0] as [number, number]
+        );
+
+        for (const coord of routePath) {
+            bounds.extend(coord as [number, number]);
+        }
+
+        map.fitBounds(bounds, {
+            padding: { top: 50, bottom: 50, left: 50, right: 50 }
+        });
     }, [routePath]);
 
     return <div ref={mapRef} className="absolute inset-0 w-full h-full bg-gray-100" />

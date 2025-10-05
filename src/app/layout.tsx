@@ -20,6 +20,7 @@ export default function RootLayout({
   const endCoords = useRouteStore((state) => state.endCoords);
   const setRoutePath = useRouteStore((state) => state.setRoutePath);
 
+
   const handlePlanRoute = () => {
     if (startCoords && endCoords) {
       planOptimalRoute([startCoords, endCoords]).then((geojson) => {
