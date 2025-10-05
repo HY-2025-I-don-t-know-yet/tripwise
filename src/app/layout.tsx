@@ -3,6 +3,7 @@ import "./globals.css";
 import { Suspense } from "react";
 import { ThemeProvider } from "@/components/themeProvider";
 import { ThemeToggle } from "@/components/themeToggle";
+import { Sidebar } from "@/components/sidebar";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -21,6 +22,9 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             {children}
+            <div className="absolute top-0 left-0">
+              <Sidebar />
+            </div>
             <div className="absolute top-4 right-4">
               <ThemeToggle />
             </div>
