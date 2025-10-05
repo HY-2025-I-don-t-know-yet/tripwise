@@ -154,23 +154,8 @@ export function MapContainer() {
             source: "route",
             paint: {
                 "line-color": "red",
-                "line-width": 14,
-                "line-opacity": 0.2,
-            }
-        });
-
-        map.addLayer({
-            id: "route-gradient",
-            type: "line",
-            source: "route",
-            paint: {
-                "line-width": 4,
-                'line-gradient': [
-                    'interpolate',
-                    ['linear'],
-                    ['line-progress'],
-                    ...routeDanger.flatMap((danger: number, i: number) => [i / routeDanger.length, danger > 0.6 ? dangerscale[4] : danger > 0.3 ? dangerscale[3] : danger > 0.1 ? dangerscale[2] : dangerscale[1]])
-                ]
+                "line-width": 3,
+                "line-opacity": 0.9,
             }
         });
 
