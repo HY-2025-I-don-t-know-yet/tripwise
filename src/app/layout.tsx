@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/themeProvider";
 import { ThemeToggle } from "@/components/themeToggle";
 import { Sidebar } from "@/components/sidebar";
 import { useRouteStore } from "@/stores/routeStore";
-import { planOptimalRoute, planRoute } from "@/lib/planRoute";
+import { planRoute } from "@/lib/planRoute";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useSafetyStore } from "@/stores/safetyStore";
