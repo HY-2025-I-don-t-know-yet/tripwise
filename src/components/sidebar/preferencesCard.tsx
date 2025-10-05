@@ -1,23 +1,21 @@
-import { Checkbox } from "../ui/checkbox";
+import { FigmaCheckbox } from "../figmed/checkbox";
 import { Label } from "../ui/label";
 
 export function PreferenceCard() {
     const options = [
-        "Museums",
-        "Parks",
-        "Amphitheaters",
-        "Galleries",
-        "Historic Sites",
-        "Zoos",
-        "Aquariums",
-        "Landmarks",
-        "Botanical Gardens",
-        "Monuments",
+        "Muzea",
+        "Restauracje",
+        "Sklepy",
+        "Zabytki",
+        "Parki",
+        "Stacje benzynowe",
+        "Hotele",
+        "Punkty widokowe",
     ];
 
     // Split options into two columns
-    const firstColumn = options.slice(0, 5);
-    const secondColumn = options.slice(5, 10);
+    const firstColumn = options.slice(0, 4);
+    const secondColumn = options.slice(4, 10);
 
     return (
         <div className="space-y-2.5 p-3 bg-muted/20 rounded-lg w-full">
@@ -28,7 +26,7 @@ export function PreferenceCard() {
                 <div className="flex flex-col gap-1">
                     {firstColumn.map((option) => (
                         <div key={option} className="flex items-center space-x-2">
-                            <Checkbox id={option} />
+                            <FigmaCheckbox id={option} />
                             <Label htmlFor={option} className="text-sm text-foreground">
                                 {option}
                             </Label>
@@ -40,7 +38,7 @@ export function PreferenceCard() {
                 <div className="flex flex-col gap-1">
                     {secondColumn.map((option) => (
                         <div key={option} className="flex items-center space-x-2">
-                            <Checkbox id={option} />
+                            <FigmaCheckbox id={option} />
                             <Label htmlFor={option} className="text-sm text-foreground">
                                 {option}
                             </Label>

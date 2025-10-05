@@ -2,7 +2,6 @@
 
 import { Slider } from "../ui/slider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertTriangle, AlertCircle, ShieldAlert, Skull } from "lucide-react"
 import { useState } from "react"
 
 import Image from 'next/image';
