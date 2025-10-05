@@ -31,25 +31,20 @@ export async function planOptimalRoute(
 
     if (dangerousGeometries) {
         const polygons = dangerousGeometries
-            .map(g => g.coordinates[0][0]) // Extract the exterior ring
-            .filter(p =>
-                p && p.length > 2 && p.every(c =>
-                    c && c.length === 2 && !isNaN(parseFloat(c[0] as any)) && !isNaN(parseFloat(c[1] as any))
-                )
-            )
-            .map(p => {
-                const cleanedPolygon = p.map(c => [
+            .flatMap(g => g.coordinates) // Flatten the coordinates array
+            .map(ring => {
+                const cleanedRing = ring.map(c => [
                     parseFloat(Number(c[0]).toFixed(6)),
                     parseFloat(Number(c[1]).toFixed(6))
                 ]);
 
                 // Ensure the polygon is closed
-                const firstPoint = cleanedPolygon[0];
-                const lastPoint = cleanedPolygon[cleanedPolygon.length - 1];
+                const firstPoint = cleanedRing[0];
+                const lastPoint = cleanedRing[cleanedRing.length - 1];
                 if (firstPoint[0] !== lastPoint[0] || firstPoint[1] !== lastPoint[1]) {
-                    cleanedPolygon.push(firstPoint);
+                    cleanedRing.push(firstPoint);
                 }
-                return cleanedPolygon;
+                return cleanedRing;
             });
 
         if (polygons.length > 0) {
