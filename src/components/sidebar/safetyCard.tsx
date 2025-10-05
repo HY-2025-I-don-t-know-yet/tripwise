@@ -6,9 +6,13 @@ import { useState } from "react"
 
 import Image from 'next/image';
 import Level1Icon from "../../../public/level1.svg"
+import Level1BwIcon from "../../../public/level1-bw.svg"
 import Level2Icon from "../../../public/level2.svg"
+import Level2BwIcon from "../../../public/level2-bw.svg"
 import Level3Icon from "../../../public/level3.svg"
-import Level4Icon from "../../../public/level4-bw.svg"
+import Level3BwIcon from "../../../public/level3-bw.svg"
+import Level4Icon from "../../../public/level4.svg"
+import Level4BwIcon from "../../../public/level4-bw.svg"
 
 const DANGER_LEVELS = {
     MINOR: {
@@ -55,6 +59,7 @@ export function SafetyCard() {
 
     const levels = [DANGER_LEVELS.CRITICAL, DANGER_LEVELS.SIGNIFICANT, DANGER_LEVELS.MODERATE, DANGER_LEVELS.MINOR]
     const icons = [Level4Icon, Level3Icon, Level2Icon, Level1Icon]
+    const iconsBw = [Level4BwIcon, Level3BwIcon, Level2BwIcon, Level1BwIcon]
 
     return (
         <Card className="w-full bg-muted/20 rounded-lg">
@@ -78,15 +83,15 @@ export function SafetyCard() {
                 {/* Icons row */}
                 <div className="flex justify-between mt-2">
                     {levels.map((level, i) => {
-                        const isActive =
-                            (level === DANGER_LEVELS.CRITICAL && invertedValue > DANGER_LEVELS.SIGNIFICANT.threshold) ||
-                            (level === DANGER_LEVELS.SIGNIFICANT && invertedValue > DANGER_LEVELS.MODERATE.threshold && invertedValue <= DANGER_LEVELS.SIGNIFICANT.threshold) ||
-                            (level === DANGER_LEVELS.MODERATE && invertedValue > DANGER_LEVELS.MINOR.threshold && invertedValue <= DANGER_LEVELS.MODERATE.threshold) ||
-                            (level === DANGER_LEVELS.MINOR && invertedValue <= DANGER_LEVELS.MINOR.threshold)
+                        const isBelowThreshold = invertedValue < level.threshold
 
                         return (
                             <div key={level.label} className="flex flex-col items-center gap-1">
-                                <Image alt={icons[i]} src={icons[i]} className={`h-6 w-6 ${isActive ? level.color.replace("bg-", "text-") : "text-muted-foreground"}`} />
+                                <Image
+                                    alt={level.label}
+                                    src={!isBelowThreshold ? iconsBw[i] : icons[i]}
+                                    className={`h-6 w-6 ${isBelowThreshold ? level.color.replace("bg-", "text-") : "text-muted-foreground"}`}
+                                />
                                 <span className="text-xs text-muted-foreground">{level.label}</span>
                             </div>
                         )
