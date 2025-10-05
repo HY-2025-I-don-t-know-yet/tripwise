@@ -59,7 +59,7 @@ export function SafetyCard() {
 
     return (
         <Card className="w-full bg-muted/20 rounded-lg">
-            <CardHeader className="pb-2">
+            <CardHeader >
                 <CardTitle className="text-lg font-semibold text-foreground">
                     Risk Management
                 </CardTitle>

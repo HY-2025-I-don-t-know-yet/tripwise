@@ -1,0 +1,86 @@
+{
+    "Przekraczanie dozwolonej prędkości": {
+        "range": 500,
+        "danger": 8
+    },
+    "Kłusownictwo": {
+        "range": 1000,
+        "danger": 2
+    },
+    "Dzikie wysypiska śmieci": {
+        "range": 200,
+        "danger": 1
+    },
+    "Nielegalne rajdy samochodowe": {
+        "range": 2000,
+        "danger": 10
+    },
+    "Osoba bezdomna wymagająca pomocy": {
+        "range": 50,
+        "danger": 1
+    },
+    "Akty wandalizmu": {
+        "range": 100,
+        "danger": 3
+    },
+    "Zła organizacja ruchu drogowego": {
+        "range": 500,
+        "danger": 7
+    },
+    "Grupowanie się małoletnich zagrożonych demoralizacją": {
+        "range": 150,
+        "danger": 2
+    },
+    "Miejsce niebezpiecznej działalności rozrywkowej": {
+        "range": 300,
+        "danger": 8
+    },
+    "Żebractwo": {
+        "range": 50,
+        "danger": 1
+    },
+    "Niestrzeżone przejście przez tory": {
+        "range": 200,
+        "danger": 9
+    },
+    "Poruszanie się po terenach leśnych quadami": {
+        "range": 1000,
+        "danger": 4
+    },
+    "Wypalanie traw": {
+        "range": 500,
+        "danger": 5
+    },
+    "Wałęsające się bezpańskie psy": {
+        "range": 200,
+        "danger": 4
+    },
+    "Niszczenie zieleni": {
+        "range": 100,
+        "danger": 1
+    },
+    "Nielegalna wycinka drzew": {
+        "range": 1000,
+        "danger": 2
+    },
+    "Niewłaściwa infrastruktura drogowa": {
+        "range": 500,
+        "danger": 7
+    },
+    "Miejsca niebezpieczne na wodach": {
+        "range": 300,
+        "danger": 8
+    },
+    "Spożywanie alkoholu w miejscach niedozwolonych": {
+        "range": 100,
+        "danger": 3
+    },
+    "Niestrzeżony przejazd kolejowy": {
+        "range": 200,
+        "danger": 9
+    },
+    "Zdarzenia drogowe z udziałem zwierząt leśnych": {
+        "range": 1000,
+        "danger": 7
+    }
+}

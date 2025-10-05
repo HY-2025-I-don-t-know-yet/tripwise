@@ -1,15 +1,85 @@
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+"use client"
+
+import { useState } from "react"
+import { Input } from "../ui/input"
+import { Label } from "../ui/label"
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
+import { StreetResult, completeStreetName } from "../../lib/completeStreatName"
+import { useRouteStore } from "@/stores/routeStore"
 
 export function RouteCard() {
+    const setStartCoords = useRouteStore((state) => state.setStartCoords)
+    const setEndCoords = useRouteStore((state) => state.setEndCoords)
+
+    const [startStreet, setStartStreet] = useState("")
+    const [endStreet, setEndStreet] = useState("")
+    const [suggestions, setSuggestions] = useState<StreetResult[]>([])
+    const [activeField, setActiveField] = useState<"start" | "end" | null>(null)
+
+    const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && activeField) {
+            e.preventDefault() // prevent form submit
+
+            const query = activeField === "start" ? startStreet : endStreet
+            const results = await completeStreetName(query)
+            setSuggestions(results)
+        }
+    }
+
+    const handleSelectSuggestion = (result: StreetResult) => {
+        if (activeField === "start") {
+            setStartStreet(result.display_name)
+            setStartCoords({
+                lat: result.lat,
+                lon: result.lon
+            })
+        }
+        if (activeField === "end") {
+            setEndStreet(result.display_name)
+            setEndCoords({
+                lat: result.lat,
+                lon: result.lon
+            })
+        }
+        setSuggestions([])
+    }
+
     return (
         <form className="space-y-2.5 p-3 bg-muted/20 rounded-lg w-full">
             <h2 className="text-lg font-semibold text-foreground">Route Planning</h2>
 
-            <div className="flex flex-col gap-2">
-                <Input id="startStreet" placeholder="Enter starting point" />
-                <Input id="destinationStreet" placeholder="Enter destination" />
+            <div className="flex flex-col gap-2 relative">
+                <Input
+                    id="startStreet"
+                    placeholder="Enter starting point"
+                    value={startStreet}
+                    onChange={(e) => setStartStreet(e.target.value)}
+                    onFocus={() => setActiveField("start")}
+                    onKeyDown={handleKeyDown}
+                />
+                <Input
+                    id="endStreet"
+                    placeholder="Enter end"
+                    value={endStreet}
+                    onChange={(e) => setEndStreet(e.target.value)}
+                    onFocus={() => setActiveField("end")}
+                    onKeyDown={handleKeyDown}
+                />
+
+                {suggestions.length > 0 && (
+                    <div className="absolute top-full left-0 w-full bg-background border border-border rounded-md shadow-md z-10 mt-1">
+                        {suggestions.map((result, idx) => (
+                            <button
+                                key={idx}
+                                type="button"
+                                className="w-full text-left px-2 py-1 hover:bg-accent/20"
+                                onClick={() => handleSelectSuggestion(result)}
+                            >
+                                {result.display_name}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div>
@@ -30,5 +100,5 @@ export function RouteCard() {
                 </RadioGroup>
             </div>
         </form>
-    );
+    )
 }
