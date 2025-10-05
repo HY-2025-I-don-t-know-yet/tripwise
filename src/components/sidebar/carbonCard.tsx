@@ -11,13 +11,13 @@ export function CarbonCard() {
         <Card className="bg-muted/20 rounded-lg">
             <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-semibold text-foreground">
-                    Carbon Footprint Summary
+                    Szacowany Ślad Węglowy
                 </CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
-                    <p className="text-sm text-muted-foreground">Estimated Emissions</p>
+                    <p className="text-sm text-muted-foreground">Emisja spalin</p>
                     <p className="text-base font-medium">{footprintKg} kg CO₂e</p>
                 </div>
 
@@ -25,11 +25,11 @@ export function CarbonCard() {
 
                 <div className="space-y-1.5">
                     <p className="text-sm text-muted-foreground">
-                        Reduction vs. average trip
+                        Przewidywany vs. Średni ślad węglowy
                     </p>
                     <Progress value={Number(reductionPercent)} className="h-2" />
                     <p className="text-xs text-muted-foreground">
-                        {reductionPercent}% lower emissions
+                        {reductionPercent}% poniżej średniej
                     </p>
                 </div>
             </CardContent>

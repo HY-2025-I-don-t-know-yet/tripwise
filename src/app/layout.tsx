@@ -1,7 +1,7 @@
 "use client";
 
 import "./globals.css";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "@/components/themeProvider";
 import { ThemeToggle } from "@/components/themeToggle";
 import { Sidebar } from "@/components/sidebar";
@@ -9,6 +9,7 @@ import { useRouteStore } from "@/stores/routeStore";
 import { planOptimalRoute } from "@/lib/planOptimalRoute";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useSafetyStore } from "@/stores/safetyStore";
 
 
 export default function RootLayout({
@@ -19,10 +20,43 @@ export default function RootLayout({
   const startCoords = useRouteStore((state) => state.startCoords);
   const endCoords = useRouteStore((state) => state.endCoords);
   const setRoutePath = useRouteStore((state) => state.setRoutePath);
+  const dangerLevel = useSafetyStore((state) => state.dangerLevel);
+  const [aggregatedData, setAggregatedData] = useState<any | null>(null);
+
+  useEffect(() => {
+    async function loadAggregatedData() {
+      try {
+        const res = await fetch("/blobs/data_aggregated.json");
+        const geojson = await res.json();
+        setAggregatedData(geojson);
+      } catch (err) {
+        console.error("Failed to load aggregated data:", err);
+      }
+    }
+    loadAggregatedData();
+  }, []);
+
 
   const handlePlanRoute = () => {
     if (startCoords && endCoords) {
-      planOptimalRoute([startCoords, endCoords]).then((geojson) => {
+      const dangerMapping = {
+        0: 8, 1: 1, 2: 3, 3: 7, 4: 7, 5: 3, 6: 2, 7: 1, 8: 1, 9: 10, 10: 8,
+        11: 4, 12: 9, 13: 1, 14: 2, 15: 7, 16: 8, 17: 4, 18: 5, 19: 2, 20: 9
+      };
+
+      const invertedValue = 100 - dangerLevel;
+      const dangerThreshold = Math.floor(invertedValue / 10) + 1;
+
+      const visibleNameIds = Object.entries(dangerMapping)
+        .filter(([nameId, danger]) => danger >= dangerThreshold)
+        .map(([nameId]) => parseInt(nameId, 10));
+
+      const filteredFeatures = aggregatedData.features
+        .filter((feature: any) =>
+          visibleNameIds.includes(feature.properties.name_id)
+        )
+
+      planOptimalRoute([startCoords, endCoords], filteredFeatures).then((geojson) => {
         if (geojson) {
           setRoutePath(geojson.geometry.coordinates);
         }

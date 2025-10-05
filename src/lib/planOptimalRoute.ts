@@ -11,7 +11,7 @@ export interface RouteGeoJSON {
     }
 }
 
-export async function planOptimalRoute(coords: Coords[]): Promise<RouteGeoJSON | null> {
+export async function planOptimalRoute(coords: Coords[], dangerousPolygons?: { geometry: { coordinates: [number, number][][] } }[]): Promise<RouteGeoJSON | null> {
     var parts: string[] = []
     coords.forEach(coord => {
         parts.push(`${coord.lon},${coord.lat}`)
@@ -36,11 +36,36 @@ export async function planOptimalRoute(coords: Coords[]): Promise<RouteGeoJSON |
         const encodedPolyline = data.routes[0].geometry
         const decodedPolyline: [number, number][] = polyline.decode(encodedPolyline)
 
+        const routeCoords: [number, number][] = decodedPolyline.map(([lat, lng]: [number, number]) => [lng, lat]);
+
+        if (dangerousPolygons) {
+            for (const point of routeCoords) {
+                for (const feature of dangerousPolygons) {
+                    const x = point[0], y = point[1];
+                    const polygon = feature.geometry.coordinates[0];
+                    let isInside = false;
+                    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                        const xi = polygon[i][0], yi = polygon[i][1];
+                        const xj = polygon[j][0], yj = polygon[j][1];
+                        const intersect = ((yi > y) != (yj > y))
+                            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                        if (intersect) isInside = !isInside;
+                    }
+                    if (isInside) {
+                        console.warn("Route intersects with a dangerous area", feature);
+                        // Here you could implement logic to handle the intersection,
+                        // for now, we just warn.
+                    }
+                }
+            }
+        }
+
+
         const geojson: RouteGeoJSON = {
             type: "Feature",
             geometry: {
                 type: "LineString",
-                coordinates: decodedPolyline.map(([lat, lng]: [number, number]) => [lng, lat]),
+                coordinates: routeCoords,
             },
         }
 

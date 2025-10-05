@@ -19,7 +19,7 @@ export function PreferenceCard() {
 
     return (
         <div className="space-y-2.5 p-3 bg-muted/20 rounded-lg w-full">
-            <h2 className="text-lg font-semibold text-foreground">Preferences</h2>
+            <h2 className="text-lg font-semibold text-foreground">Preferencje</h2>
 
             <div className="flex gap-8 mt-2">
                 {/* First column */}
@@ -39,7 +39,7 @@ export function PreferenceCard() {
                     {secondColumn.map((option) => (
                         <div key={option} className="flex items-center space-x-2">
                             <FigmaCheckbox id={option} />
-                            <Label htmlFor={option} className="text-sm text-foreground">
+                            <Label htmlFor={option} className="text-sm text-foreground font-sans">
                                 {option}
                             </Label>
                         </div>
