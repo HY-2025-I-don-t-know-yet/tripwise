@@ -16,6 +16,7 @@ export function MapContainer() {
     const startCoords = useRouteStore((state) => state.startCoords);
     const endCoords = useRouteStore((state) => state.endCoords);
     const routePath = useRouteStore((state) => state.routePath);
+    const dangerousPolygonsForDisplay = useRouteStore((state) => state.dangerousPolygonsForDisplay);
     const dangerLevel = useSafetyStore((state) => state.dangerLevel);
     const [aggregatedData, setAggregatedData] = useState<GeoJSONData | null>(null);
 
