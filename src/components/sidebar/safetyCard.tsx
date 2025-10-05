@@ -2,7 +2,7 @@
 
 import { Slider } from "../ui/slider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useState } from "react"
+import { useSafetyStore } from "@/stores/safetyStore"
 
 import Image from 'next/image';
 import Level1Icon from "../../../public/level1.svg"
@@ -43,7 +43,8 @@ const DANGER_LEVELS = {
 
 
 export function SafetyCard() {
-    const [dangerLevel, setDangerLevel] = useState<number>(0)
+    const dangerLevel = useSafetyStore((state) => state.dangerLevel)
+    const setDangerLevel = useSafetyStore((state) => state.setDangerLevel)
 
     // Invert slider value so left=highest, right=lowest
     const invertedValue = 100 - dangerLevel

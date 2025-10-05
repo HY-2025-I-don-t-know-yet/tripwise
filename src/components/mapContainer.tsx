@@ -5,11 +5,13 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTheme } from "next-themes";
 import { useRouteStore } from "@/stores/routeStore";
+import { useSafetyStore } from "@/stores/safetyStore";
 
 export function MapContainer() {
     const startCoords = useRouteStore((state) => state.startCoords);
     const endCoords = useRouteStore((state) => state.endCoords);
     const routePath = useRouteStore((state) => state.routePath);
+    const dangerLevel = useSafetyStore((state) => state.dangerLevel);
 
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<maplibregl.Map | null>(null);
@@ -90,7 +92,7 @@ export function MapContainer() {
         }
     }, [startCoords, endCoords]);
 
-    function drawRoute(map, routePath) {
+    function drawRoute(map: any, routePath: any) {
         if (map.getLayer("route")) map.removeLayer("route");
         if (map.getSource("route")) map.removeSource("route");
 
@@ -150,6 +152,7 @@ export function MapContainer() {
         if (!mapInstance.current) return;
         const map = mapInstance.current;
 
+        /*
         async function loadSplats() {
             try {
                 const res = await fetch("/blobs/data_minimized.json");
@@ -231,10 +234,85 @@ export function MapContainer() {
             } catch (err) {
                 console.error("Failed to load splats:", err);
             }
+        }*/
+
+        //loadSplats();
+
+        async function drawAggregatedData() {
+            if (!mapInstance.current) return;
+            const map = mapInstance.current;
+
+            try {
+                const res = await fetch("/blobs/data_aggregated.json");
+                const geojson = await res.json();
+
+                const invertedValue = 100 - dangerLevel;
+
+                let visibleNameIds: number[];
+                if (invertedValue <= 25) { // Minor
+                    visibleNameIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+                } else if (invertedValue <= 50) { // Moderate
+                    visibleNameIds = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+                } else if (invertedValue <= 75) { // Significant
+                    visibleNameIds = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+                } else { // Critical
+                    visibleNameIds = [16, 17, 18, 19, 20, 21];
+                }
+
+                const filteredFeatures = geojson.features.filter((feature: any) =>
+                    visibleNameIds.includes(feature.properties.name_id)
+                );
+
+                const filteredGeojson = {
+                    ...geojson,
+                    features: filteredFeatures,
+                };
+
+                if (map.getSource("aggregated-polygons")) {
+                    map.removeLayer("aggregated-polygons-layer");
+                    map.removeSource("aggregated-polygons");
+                }
+
+                map.addSource("aggregated-polygons", {
+                    type: "geojson",
+                    data: filteredGeojson,
+                });
+
+                map.addLayer({
+                    id: "aggregated-polygons-layer",
+                    type: "fill",
+                    source: "aggregated-polygons",
+                    paint: {
+                        "fill-color": [
+                            "match",
+                            ["get", "name_id"],
+                            1, "#FF0000",
+                            2, "#00FF00",
+                            3, "#0000FF",
+                            4, "#FFFF00",
+                            5, "#FF00FF",
+                            6, "#00FFFF",
+                            7, "#800000",
+                            8, "#008000",
+                            9, "#000080",
+                            10, "#808000",
+                            "#808080" // Default color
+                        ],
+                        "fill-opacity": 0.5,
+                    },
+                });
+            } catch (err) {
+                console.error("Failed to load aggregated data:", err);
+            }
         }
 
-        loadSplats();
-    }, []);
+        if (mapInstance.current.isStyleLoaded()) {
+            drawAggregatedData();
+        } else {
+            mapInstance.current.on('load', drawAggregatedData);
+        }
+
+    }, [dangerLevel]);
 
     return <div ref={mapRef} className="absolute inset-0 w-full h-full bg-gray-100" />;
 }
