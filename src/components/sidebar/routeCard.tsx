@@ -16,15 +16,21 @@ export function RouteCard() {
     const [suggestions, setSuggestions] = useState<StreetResult[]>([])
     const [activeField, setActiveField] = useState<"start" | "end" | null>(null)
 
-    const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter" && activeField) {
-            e.preventDefault() // prevent form submit
-
-            const query = activeField === "start" ? startStreet : endStreet
-            const results = await completeStreetName(query)
-            setSuggestions(results)
+    const handleSearch = async () => {
+        if (!activeField) return;
+        const query = activeField === "start" ? startStreet : endStreet;
+        if (query) {
+            const results = await completeStreetName(query);
+            setSuggestions(results);
         }
-    }
+    };
+
+    const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            e.preventDefault(); // prevent form submit
+            await handleSearch();
+        }
+    };
 
     const handleSelectSuggestion = (result: StreetResult) => {
         if (activeField === "start") {
@@ -56,6 +62,7 @@ export function RouteCard() {
                     onChange={(e) => setStartStreet(e.target.value)}
                     onFocus={() => setActiveField("start")}
                     onKeyDown={handleKeyDown}
+                    onBlur={handleSearch}
                 />
                 <FigmaInput
                     id="endStreet"
@@ -64,6 +71,7 @@ export function RouteCard() {
                     onChange={(e) => setEndStreet(e.target.value)}
                     onFocus={() => setActiveField("end")}
                     onKeyDown={handleKeyDown}
+                    onBlur={handleSearch}
                 />
 
                 {suggestions.length > 0 && (
