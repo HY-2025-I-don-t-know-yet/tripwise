@@ -20,6 +20,7 @@ export default function RootLayout({
   const startCoords = useRouteStore((state) => state.startCoords);
   const endCoords = useRouteStore((state) => state.endCoords);
   const setRoutePath = useRouteStore((state) => state.setRoutePath);
+  const setDangerousPolygonsForDisplay = useRouteStore((state) => state.setDangerousPolygonsForDisplay);
   const dangerLevel = useSafetyStore((state) => state.dangerLevel);
   const [aggregatedData, setAggregatedData] = useState<any | null>(null);
 
@@ -38,7 +39,7 @@ export default function RootLayout({
 
 
   const handlePlanRoute = () => {
-    if (startCoords && endCoords) {
+    if (startCoords && endCoords && aggregatedData) {
       const dangerMapping = {
         0: 8, 1: 1, 2: 3, 3: 7, 4: 7, 5: 3, 6: 2, 7: 1, 8: 1, 9: 10, 10: 8,
         11: 4, 12: 9, 13: 1, 14: 2, 15: 7, 16: 8, 17: 4, 18: 5, 19: 2, 20: 9
@@ -54,9 +55,14 @@ export default function RootLayout({
       const filteredFeatures = aggregatedData.features
         .filter((feature: any) =>
           visibleNameIds.includes(feature.properties.name_id)
-        )
+        );
 
-      planOptimalRoute([startCoords, endCoords], filteredFeatures).then((geojson) => {
+      console.log("Filtered features:", JSON.stringify(filteredFeatures, null, 2));
+
+      const dangerousGeometries = filteredFeatures.map((f: any) => f.geometry);
+      setDangerousPolygonsForDisplay(dangerousGeometries);
+
+      planOptimalRoute([startCoords, endCoords], dangerousGeometries).then((geojson) => {
         if (geojson) {
           setRoutePath(geojson.geometry.coordinates);
         }
@@ -66,7 +72,7 @@ export default function RootLayout({
 
   return (
     // legal hack as it is only caused by theme change
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pl" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <Suspense fallback={null}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
