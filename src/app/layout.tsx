@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/themeProvider";
 import { ThemeToggle } from "@/components/themeToggle";
 import { Sidebar } from "@/components/sidebar";
 import { useRouteStore } from "@/stores/routeStore";
-import { planOptimalRoute } from "@/lib/planOptimalRoute";
+import { planOptimalRoute, planRoute } from "@/lib/planRoute";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useSafetyStore } from "@/stores/safetyStore";
@@ -39,34 +39,12 @@ export default function RootLayout({
 
 
   const handlePlanRoute = () => {
-    if (startCoords && endCoords && aggregatedData) {
-      const dangerMapping = {
-        0: 8, 1: 1, 2: 3, 3: 7, 4: 7, 5: 3, 6: 2, 7: 1, 8: 1, 9: 10, 10: 8,
-        11: 4, 12: 9, 13: 1, 14: 2, 15: 7, 16: 8, 17: 4, 18: 5, 19: 2, 20: 9
-      };
-
-      const invertedValue = 100 - dangerLevel;
-      const dangerThreshold = Math.floor(invertedValue / 10) + 1;
-
-      const visibleNameIds = Object.entries(dangerMapping)
-        .filter(([nameId, danger]) => danger >= dangerThreshold)
-        .map(([nameId]) => parseInt(nameId, 10));
-
-      const filteredFeatures = aggregatedData.features
-        .filter((feature: any) =>
-          visibleNameIds.includes(feature.properties.name_id)
-        );
-
-      console.log("Filtered features:", JSON.stringify(filteredFeatures, null, 2));
-
-      const dangerousGeometries = filteredFeatures.map((f: any) => f.geometry);
-      setDangerousPolygonsForDisplay(dangerousGeometries);
-
-      planOptimalRoute([startCoords, endCoords], dangerousGeometries).then((geojson) => {
+    if (startCoords && endCoords) {
+      planRoute([startCoords, endCoords]).then((geojson) => {
         if (geojson) {
           setRoutePath(geojson.geometry.coordinates);
         }
-      });
+      })
     }
   }
 

@@ -11,7 +11,7 @@ export interface RouteGeoJSON {
     };
 }
 
-export async function planOptimalRoute(
+export async function planRouteWithExclusions(
     coords: Coords[],
     dangerousGeometries?: { type: string; coordinates: [number, number][][][]; }[]
 ): Promise<RouteGeoJSON | null> {

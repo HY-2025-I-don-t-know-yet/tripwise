@@ -13,6 +13,8 @@ export function RouteCard() {
 
     const [startStreet, setStartStreet] = useState("")
     const [endStreet, setEndStreet] = useState("")
+    const vehicleType = useRouteStore((state) => state.vehicleType)
+    const setVehicleType = useRouteStore((state) => state.setVehicleType)
     const [suggestions, setSuggestions] = useState<StreetResult[]>([])
     const [activeField, setActiveField] = useState<"start" | "end" | null>(null)
 
@@ -100,17 +102,17 @@ export function RouteCard() {
 
             <div>
                 <Label className="text-sm text-muted-foreground">Środek transportu</Label>
-                <RadioGroup defaultValue="car" className="flex flex-row justify-around mt-2">
+                <RadioGroup defaultValue="car" className="flex flex-row justify-around mt-2" value={useRouteStore((state) => state.vehicleType)}>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="car" id="car" />
+                        <RadioGroupItem value="car" id="car" onClick={() => setVehicleType("car")} />
                         <Label htmlFor="car">Samochód</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="train" id="train" />
+                        <RadioGroupItem value="train" id="train" onClick={() => setVehicleType("train")} />
                         <Label htmlFor="train">Pociąg</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="bicycle" id="bicycle" />
+                        <RadioGroupItem value="bicycle" id="bicycle" onClick={() => setVehicleType("bicycle")} />
                         <Label htmlFor="bicycle">Rower</Label>
                     </div>
                 </RadioGroup>
