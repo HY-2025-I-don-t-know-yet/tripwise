@@ -1,17 +1,23 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTheme } from "next-themes";
 import { useRouteStore } from "@/stores/routeStore";
 import { useSafetyStore } from "@/stores/safetyStore";
 
+interface GeoJSONData {
+    type: "FeatureCollection";
+    features: any[];
+}
+
 export function MapContainer() {
     const startCoords = useRouteStore((state) => state.startCoords);
     const endCoords = useRouteStore((state) => state.endCoords);
     const routePath = useRouteStore((state) => state.routePath);
     const dangerLevel = useSafetyStore((state) => state.dangerLevel);
+    const [aggregatedData, setAggregatedData] = useState<GeoJSONData | null>(null);
 
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<maplibregl.Map | null>(null);
@@ -128,8 +134,8 @@ export function MapContainer() {
         });
 
         const bounds = routePath.reduce(
-            (bounds, coord) => {
-                return bounds.extend(coord as [number, number]);
+            (bounds: maplibregl.LngLatBounds, coord: [number, number]) => {
+                return bounds.extend(coord);
             },
             new maplibregl.LngLatBounds(routePath[0] as [number, number], routePath[0] as [number, number])
         );
@@ -146,6 +152,19 @@ export function MapContainer() {
 
         drawRoute(mapInstance.current, routePath)
     }, [routePath]);
+
+    useEffect(() => {
+        async function loadAggregatedData() {
+            try {
+                const res = await fetch("/blobs/data_aggregated.json");
+                const geojson = await res.json();
+                setAggregatedData(geojson);
+            } catch (err) {
+                console.error("Failed to load aggregated data:", err);
+            }
+        }
+        loadAggregatedData();
+    }, []);
 
     // Draw splats with flat-Earth distance approximation
     useEffect(() => {
@@ -239,32 +258,28 @@ export function MapContainer() {
         //loadSplats();
 
         async function drawAggregatedData() {
-            if (!mapInstance.current) return;
+            if (!mapInstance.current || !aggregatedData) return;
             const map = mapInstance.current;
 
             try {
-                const res = await fetch("/blobs/data_aggregated.json");
-                const geojson = await res.json();
+                const dangerMapping = {
+                    0: 8, 1: 1, 2: 3, 3: 7, 4: 7, 5: 3, 6: 2, 7: 1, 8: 1, 9: 10, 10: 8,
+                    11: 4, 12: 9, 13: 1, 14: 2, 15: 7, 16: 8, 17: 4, 18: 5, 19: 2, 20: 9
+                };
 
                 const invertedValue = 100 - dangerLevel;
+                const dangerThreshold = Math.floor(invertedValue / 10) + 1;
 
-                let visibleNameIds: number[];
-                if (invertedValue <= 25) { // Minor
-                    visibleNameIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
-                } else if (invertedValue <= 50) { // Moderate
-                    visibleNameIds = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
-                } else if (invertedValue <= 75) { // Significant
-                    visibleNameIds = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
-                } else { // Critical
-                    visibleNameIds = [16, 17, 18, 19, 20, 21];
-                }
+                const visibleNameIds = Object.entries(dangerMapping)
+                    .filter(([nameId, danger]) => danger >= dangerThreshold)
+                    .map(([nameId]) => parseInt(nameId, 10));
 
-                const filteredFeatures = geojson.features.filter((feature: any) =>
+                const filteredFeatures = aggregatedData.features.filter((feature: any) =>
                     visibleNameIds.includes(feature.properties.name_id)
                 );
 
                 const filteredGeojson = {
-                    ...geojson,
+                    ...aggregatedData,
                     features: filteredFeatures,
                 };
 
@@ -312,7 +327,7 @@ export function MapContainer() {
             mapInstance.current.on('load', drawAggregatedData);
         }
 
-    }, [dangerLevel]);
+    }, [dangerLevel, aggregatedData]);
 
     return <div ref={mapRef} className="absolute inset-0 w-full h-full bg-gray-100" />;
 }

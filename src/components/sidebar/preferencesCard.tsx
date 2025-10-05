@@ -39,7 +39,7 @@ export function PreferenceCard() {
                     {secondColumn.map((option) => (
                         <div key={option} className="flex items-center space-x-2">
                             <FigmaCheckbox id={option} />
-                            <Label htmlFor={option} className="text-sm text-foreground">
+                            <Label htmlFor={option} className="text-sm text-foreground font-sans">
                                 {option}
                             </Label>
                         </div>

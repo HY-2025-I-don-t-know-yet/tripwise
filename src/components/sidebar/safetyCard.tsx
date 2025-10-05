@@ -43,8 +43,7 @@ const DANGER_LEVELS = {
 
 
 export function SafetyCard() {
-    const dangerLevel = useSafetyStore((state) => state.dangerLevel)
-    const setDangerLevel = useSafetyStore((state) => state.setDangerLevel)
+    const { dangerLevel, setDangerLevel } = useSafetyStore()
 
     // Invert slider value so left=highest, right=lowest
     const invertedValue = 100 - dangerLevel
