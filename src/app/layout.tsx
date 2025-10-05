@@ -7,6 +7,9 @@ import { ThemeToggle } from "@/components/themeToggle";
 import { Sidebar } from "@/components/sidebar";
 import { useRouteStore } from "@/stores/routeStore";
 import { planOptimalRoute } from "@/lib/planOptimalRoute";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+
 
 export default function RootLayout({
   children,
@@ -35,7 +38,10 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             {children}
             <div className="absolute top-0 left-0">
-              <Sidebar onRoute={handlePlanRoute} />
+              <div className="flex flex-row align-end items-end">
+                <Sidebar />
+                <Button className="m-4 rounded-full p-6 w-30 bg-lime-600 hover:bg-lime-500 hover:border-black border-transparent border-2" onClick={handlePlanRoute}>Podróżuj!<ArrowRight /></Button>
+              </div>
             </div>
             <div className="absolute top-4 right-4">
               <ThemeToggle />

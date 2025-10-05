@@ -21,11 +21,6 @@ export function CarbonCard() {
                     <p className="text-base font-medium">{footprintKg} kg CO₂e</p>
                 </div>
 
-                <div className="flex justify-between items-center">
-                    <p className="text-sm text-muted-foreground">Average Trip (same distance)</p>
-                    <p className="text-base font-medium">{avgFootprintKg} kg CO₂e</p>
-                </div>
-
                 <Separator />
 
                 <div className="space-y-1.5">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Input } from "../ui/input"
+import { FigmaInput } from "../figmed/input"
 import { Label } from "../ui/label"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 import { StreetResult, completeStreetName } from "../../lib/completeStreatName"
@@ -49,7 +49,7 @@ export function RouteCard() {
             <h2 className="text-lg font-semibold text-foreground">Route Planning</h2>
 
             <div className="flex flex-col gap-2 relative">
-                <Input
+                <FigmaInput
                     id="startStreet"
                     placeholder="Enter starting point"
                     value={startStreet}
@@ -57,7 +57,7 @@ export function RouteCard() {
                     onFocus={() => setActiveField("start")}
                     onKeyDown={handleKeyDown}
                 />
-                <Input
+                <FigmaInput
                     id="endStreet"
                     placeholder="Enter end"
                     value={endStreet}
