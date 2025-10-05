@@ -30,7 +30,7 @@ export function MapContainer() {
                 container: mapRef.current,
                 style: theme === "dark" ? darkStyle : lightStyle,
                 center: [19.9445, 50.054],
-                zoom: 13,
+                zoom: 10,
             });
 
             mapInstance.current.addControl(
@@ -40,6 +40,12 @@ export function MapContainer() {
                 }),
                 "bottom-right"
             );
+            console.log(routePath, routePath?.length)
+            if (mapInstance.current && routePath && routePath.length > 0) {
+                mapInstance.current.on('load', () => {
+                    drawRoute(mapInstance.current, routePath)
+                });
+            };
         } else {
             mapInstance.current.setStyle(theme === "dark" ? darkStyle : lightStyle);
         }
@@ -84,11 +90,7 @@ export function MapContainer() {
         }
     }, [startCoords, endCoords]);
 
-    // Draw route
-    useEffect(() => {
-        if (!mapInstance.current || !routePath || routePath.length === 0) return;
-
-        const map = mapInstance.current;
+    function drawRoute(map, routePath) {
         if (map.getLayer("route")) map.removeLayer("route");
         if (map.getSource("route")) map.removeSource("route");
 
@@ -122,6 +124,25 @@ export function MapContainer() {
                 "line-width": 4,
             },
         });
+
+        const bounds = routePath.reduce(
+            (bounds, coord) => {
+                return bounds.extend(coord as [number, number]);
+            },
+            new maplibregl.LngLatBounds(routePath[0] as [number, number], routePath[0] as [number, number])
+        );
+
+        map.fitBounds(bounds, {
+            padding: 50, // Add some padding around the route
+            maxZoom: 15,
+        });
+    }
+
+    // Draw route
+    useEffect(() => {
+        if (!mapInstance.current || !routePath || routePath.length === 0) return;
+
+        drawRoute(mapInstance.current, routePath)
     }, [routePath]);
 
     // Draw splats with flat-Earth distance approximation
