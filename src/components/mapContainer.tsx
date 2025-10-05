@@ -102,20 +102,49 @@ export function MapContainer() {
         if (map.getLayer("route")) map.removeLayer("route");
         if (map.getSource("route")) map.removeSource("route");
 
+        const dangerMapping = {
+            0: 8, 1: 1, 2: 3, 3: 7, 4: 7, 5: 3, 6: 2, 7: 1, 8: 1, 9: 10, 10: 8,
+            11: 4, 12: 9, 13: 1, 14: 2, 15: 7, 16: 8, 17: 4, 18: 5, 19: 2, 20: 9
+        };
+
+        const dangerscale = {
+            4: "#9c0c0cff",
+            3: "#f7770fff",
+            2: "#e69f08ff",
+            1: "#ede43aff",
+        }
+
+        const routeDanger = routePath.map((coord: any) => {
+            // find danger at coord
+            const danger = aggregatedData?.features.find((feature: any) => {
+                // simple point in polygon check
+                const x = coord[0], y = coord[1];
+                const polygon = feature.geometry.coordinates[0];
+                let isInside = false;
+                for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                    const xi = polygon[i][0], yi = polygon[i][1];
+                    const xj = polygon[j][0], yj = polygon[j][1];
+                    const intersect = ((yi > y) != (yj > y))
+                        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                    if (intersect) isInside = !isInside;
+                }
+                return isInside;
+            })
+            if (danger) {
+                return (dangerMapping as any)[danger.properties.name_id] / 10
+            }
+            return 0
+        })
+
         map.addSource("route", {
             type: "geojson",
             data: {
-                type: "FeatureCollection",
-                features: [
-                    {
-                        type: "Feature",
-                        properties: {},
-                        geometry: {
-                            type: "LineString",
-                            coordinates: routePath,
-                        },
-                    },
-                ],
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: "LineString",
+                    coordinates: routePath,
+                },
             },
         });
 
@@ -123,14 +152,26 @@ export function MapContainer() {
             id: "route",
             type: "line",
             source: "route",
-            layout: {
-                "line-join": "round",
-                "line-cap": "round",
-            },
             paint: {
-                "line-color": "#ff7e5f",
+                "line-color": "red",
+                "line-width": 14,
+                "line-opacity": 0.2,
+            }
+        });
+
+        map.addLayer({
+            id: "route-gradient",
+            type: "line",
+            source: "route",
+            paint: {
                 "line-width": 4,
-            },
+                'line-gradient': [
+                    'interpolate',
+                    ['linear'],
+                    ['line-progress'],
+                    ...routeDanger.flatMap((danger: number, i: number) => [i / routeDanger.length, danger > 0.6 ? dangerscale[4] : danger > 0.3 ? dangerscale[3] : danger > 0.1 ? dangerscale[2] : dangerscale[1]])
+                ]
+            }
         });
 
         const bounds = routePath.reduce(
@@ -274,9 +315,17 @@ export function MapContainer() {
                     .filter(([nameId, danger]) => danger >= dangerThreshold)
                     .map(([nameId]) => parseInt(nameId, 10));
 
-                const filteredFeatures = aggregatedData.features.filter((feature: any) =>
-                    visibleNameIds.includes(feature.properties.name_id)
-                );
+                const filteredFeatures = aggregatedData.features
+                    .filter((feature: any) =>
+                        visibleNameIds.includes(feature.properties.name_id)
+                    )
+                    .map((feature: any) => ({
+                        ...feature,
+                        properties: {
+                            ...feature.properties,
+                            danger: (dangerMapping as any)[feature.properties.name_id],
+                        },
+                    }));
 
                 const filteredGeojson = {
                     ...aggregatedData,
@@ -293,25 +342,28 @@ export function MapContainer() {
                     data: filteredGeojson,
                 });
 
+                const dangerscale = {
+                    4: "#9c0c0cff",
+                    3: "#f7770fff",
+                    2: "#e69f08ff",
+                    1: "#ede43aff",
+                }
+
                 map.addLayer({
                     id: "aggregated-polygons-layer",
                     type: "fill",
                     source: "aggregated-polygons",
                     paint: {
                         "fill-color": [
-                            "match",
-                            ["get", "name_id"],
-                            1, "#FF0000",
-                            2, "#00FF00",
-                            3, "#0000FF",
-                            4, "#FFFF00",
-                            5, "#FF00FF",
-                            6, "#00FFFF",
-                            7, "#800000",
-                            8, "#008000",
-                            9, "#000080",
-                            10, "#808000",
-                            "#808080" // Default color
+                            "step",
+                            ["get", "danger"],
+                            dangerscale[1],
+                            3,
+                            dangerscale[2],
+                            6,
+                            dangerscale[3],
+                            9,
+                            dangerscale[4],
                         ],
                         "fill-opacity": 0.5,
                     },
